@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - GigUp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .dashboard-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #6a11cb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-laptop-code me-2"></i>GigUp
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/projects">Browse Projects</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i><span sec:authentication="name"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                <li><a class="dropdown-item" href="/projects/my-projects">My Projects</a></li>
+                                <li><a class="dropdown-item" href="/bids/my-bids">My Bids</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h2>Dashboard</h2>
+                <p class="text-muted">Welcome back, <span sec:authentication="name"></span>!</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card dashboard-card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-briefcase dashboard-icon"></i>
+                        <h4>My Projects</h4>
+                        <p>Manage your posted projects or work in progress</p>
+                        <a href="/projects/my-projects" class="btn btn-primary">View Projects</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card dashboard-card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-gavel dashboard-icon"></i>
+                        <h4>My Bids</h4>
+                        <p>Track your bids and proposals on projects</p>
+                        <a href="/bids/my-bids" class="btn btn-primary">View Bids</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card dashboard-card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-plus-circle dashboard-icon"></i>
+                        <h4>Post a Project</h4>
+                        <p>Create a new project to find talented freelancers</p>
+                        <a href="/projects/create" class="btn btn-primary">Post Project</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card dashboard-card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-user-circle dashboard-icon"></i>
+                        <h4>My Profile</h4>
+                        <p>Update your profile information and settings</p>
+                        <a href="/profile" class="btn btn-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">New bid on your project</h6>
+                                    <small>3 days ago</small>
+                                </div>
+                                <p class="mb-1">Someone placed a bid on your "Website Redesign" project.</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Project completed</h6>
+                                    <small>1 week ago</small>
+                                </div>
+                                <p class="mb-1">Your "Logo Design" project has been marked as completed.</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">New message</h6>
+                                    <small>2 weeks ago</small>
+                                </div>
+                                <p class="mb-1">You received a new message regarding your "Mobile App Development" project.</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Recommended Projects</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">E-commerce Website Development</h6>
+                                    <span class="badge bg-primary">$1,500</span>
+                                </div>
+                                <p class="mb-1">Looking for a developer to build an e-commerce website with payment integration.</p>
+                                <small class="text-muted">Posted 2 days ago</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Content Writing for Blog</h6>
+                                    <span class="badge bg-primary">$200</span>
+                                </div>
+                                <p class="mb-1">Need a content writer to create 10 blog posts about technology.</p>
+                                <small class="text-muted">Posted 3 days ago</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Mobile App UI Design</h6>
+                                    <span class="badge bg-primary">$800</span>
+                                </div>
+                                <p class="mb-1">Looking for a UI designer to create mockups for a fitness tracking app.</p>
+                                <small class="text-muted">Posted 5 days ago</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

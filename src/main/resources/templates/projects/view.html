@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title} + ' - GigUp'">Project Details - GigUp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .project-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .bid-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .detail-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-laptop-code me-2"></i>GigUp
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/projects">Browse Projects</a>
+                    </li>
+                </ul>
+                <div class="d-flex" sec:authorize="!isAuthenticated()">
+                    <a href="/login" class="btn btn-outline-light me-2">Login</a>
+                    <a href="/register" class="btn btn-primary">Sign Up</a>
+                </div>
+                <div class="d-flex" sec:authorize="isAuthenticated()">
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i><span sec:authentication="name"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                <li><a class="dropdown-item" href="/projects/my-projects">My Projects</a></li>
+                                <li><a class="dropdown-item" href="/bids/my-bids">My Bids</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="project-header">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 th:text="${project.title}">Project Title</h2>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="badge bg-light text-dark" th:each="skill : ${project.skills}" th:text="${skill.name}">Skill</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-light text-dark me-3" th:text="${'$' + project.budget}">$500</span>
+                            <span class="badge bg-light text-dark me-3" th:text="${project.status}">OPEN</span>
+                            <span class="text-light">Posted <span th:text="${#temporals.format(project.postedDate, 'dd MMM yyyy')}">01 Jan 2023</span></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div sec:authorize="isAuthenticated()" th:if="${project.status == 'OPEN' && currentUser.id != project.client.id}">
+                            <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#bidModal">
+                                <i class="fas fa-gavel me-1"></i> Place Bid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card detail-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Project Description</h5>
+                    </div>
+                    <div class="card-body">
+                        <p th:text="${project.description}">Project description goes here...</p>
+                    </div>
+                </div>
+                
+                <div class="card detail-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Bids</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" th:if="${bids.empty}">
+                            No bids yet. Be the first to bid on this project!
+                        </div>
+                        
+                        <div th:unless="${bids.empty}">
+                            <div class="bid-card card mb-3" th:each="bid : ${bids}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0" th:text="${bid.freelancer.username}">Freelancer Name</h6>
+                                        <span class="badge bg-primary" th:text="${'$' + bid.amount}">$450</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted" th:text="${'Submitted on ' + #temporals.format(bid.submissionDate, 'dd MMM yyyy')}">Submitted on 01 Jan 2023</small>
+                                        <div th:if="${currentUser.id == project.client.id && project.status == 'OPEN' && bid.status == 'PENDING'}">
+                                            <form th:action="@{/projects/bids/{bidId}/accept(bidId=${bid.id})}" method="post">
+                                                <button type="submit" class="btn btn-sm btn-success">Accept Bid</button>
+                                            </form>
+                                        </div>
+                                        <span class="badge" th:classappend="${bid.status == 'ACCEPTED' ? 'bg-success' : (bid.status == 'REJECTED' ? 'bg-danger' : 'bg-secondary')}" th:text="${bid.status}">PENDING</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card detail-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Client Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3" style="width: 50px; height: 50px; background-color: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user" style="font-size: 24px; color: #6a11cb;"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0" th:text="${project.client.username}">Client Name</h6>
+                                <small class="text-muted">Project Client</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2" style="color: #ffc107;">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span>4.5 (10 reviews)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card detail-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Project Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Budget</span>
+                                <span class="fw-bold" th:text="${'$' + project.budget}">$500</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Status</span>
+                                <span class="badge" th:classappend="${project.status == 'OPEN' ? 'bg-success' : (project.status == 'IN_PROGRESS' ? 'bg-warning' : 'bg-secondary')}" th:text="${project.status}">OPEN</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Posted Date</span>
+                                <span th:text="${#temporals.format(project.postedDate, 'dd MMM yyyy')}">01 Jan 2023</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Deadline</span>
+                                <span th:text="${project.deadline != null ? #temporals.format(project.deadline, 'dd MMM yyyy') : 'Not specified'}">15 Jan 2023</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Bids</span>
+                                <span th:text="${bids.size()}">5</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bid Modal -->
+    <div class="modal fade" id="bidModal" tabindex="-1" aria-labelledby="bidModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bidModalLabel">Place a Bid</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/projects/{id}/bid(id=${project.id})}" method="post" th:object="${newBid}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="bidAmount" class="form-label">Bid Amount ($)</label>
+                            <input type="number" class="form-control" id="bidAmount" th:field="*{amount}" min="1" step="0.01" required>
+                            <div class="form-text">Enter the amount you want to bid for this project.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Bid</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
