@@ -15,6 +15,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+<<<<<<< HEAD
+=======
+import java.math.BigDecimal;
+>>>>>>> feature/fix-bidding-and-filters
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -103,34 +107,79 @@ public class ProjectController {
     
     @PostMapping("/{id}/bid")
     public String placeBid(@PathVariable Long id, 
-                          @ModelAttribute Bid bid,
+
+                          @RequestParam("amount") String amountStr,
                           Authentication authentication,
                           RedirectAttributes redirectAttributes) {
         
-        Project project = projectService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-        
-        User freelancer = userService.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // Check if user is the project owner
-        if (project.getClient().getId().equals(freelancer.getId())) {
-            redirectAttributes.addFlashAttribute("error", "You cannot bid on your own project");
+        try {
+            Project project = projectService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Project not found"));
+            
+            User freelancer = userService.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Check if user is the project owner
+            if (project.getClient().getId().equals(freelancer.getId())) {
+                redirectAttributes.addFlashAttribute("error", "You cannot bid on your own project");
+                return "redirect:/projects/" + id;
+            }
+            
+            // Check if project is still open
+            if (!"OPEN".equals(project.getStatus())) {
+                redirectAttributes.addFlashAttribute("error", "This project is no longer accepting bids");
+                return "redirect:/projects/" + id;
+            }
+            
+            // Parse and validate bid amount
+            if (amountStr == null || amountStr.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please enter a valid bid amount");
+                return "redirect:/projects/" + id;
+            }
+            
+            // Convert amount string to BigDecimal
+            BigDecimal amount;
+            try {
+                amountStr = amountStr.replaceAll("[^0-9.]", "");
+                amount = new BigDecimal(amountStr);
+            } catch (NumberFormatException e) {
+                redirectAttributes.addFlashAttribute("error", "Invalid bid amount format. Please enter a valid number");
+                return "redirect:/projects/" + id;
+            }
+            
+            // Ensure positive amount
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                redirectAttributes.addFlashAttribute("error", "Bid amount must be greater than zero");
+                return "redirect:/projects/" + id;
+            }
+            
+            // Check for existing bids from this freelancer for this project
+            List<Bid> existingBids = bidService.findByProject(project);
+            for (Bid existingBid : existingBids) {
+                if (existingBid.getFreelancer().getId().equals(freelancer.getId()) && 
+                    "PENDING".equals(existingBid.getStatus())) {
+                    redirectAttributes.addFlashAttribute("error", "You already have a pending bid for this project");
+                    return "redirect:/projects/" + id;
+                }
+            }
+            
+            // Create a new bid
+            Bid bid = new Bid();
+            bid.setAmount(amount);
+            bid.setProject(project);
+            bid.setFreelancer(freelancer);
+            bid.setStatus("PENDING");
+            
+            bidService.createBid(bid);
+            
+            redirectAttributes.addFlashAttribute("success", "Bid placed successfully");
+            return "redirect:/projects/" + id;  
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the full exception details
+            redirectAttributes.addFlashAttribute("error", "An error occurred while placing your bid: " + e.getMessage());
             return "redirect:/projects/" + id;
         }
-        
-        // Check if project is still open
-        if (!"OPEN".equals(project.getStatus())) {
-            redirectAttributes.addFlashAttribute("error", "This project is no longer accepting bids");
-            return "redirect:/projects/" + id;
-        }
-        
-        bid.setProject(project);
-        bid.setFreelancer(freelancer);
-        bidService.createBid(bid);
-        
-        redirectAttributes.addFlashAttribute("success", "Bid placed successfully");
-        return "redirect:/projects/" + id;
+
     }
     
     @PostMapping("/bids/{bidId}/accept")

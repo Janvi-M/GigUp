@@ -37,8 +37,17 @@ public class BidService {
         return bidRepository.findByFreelancer(freelancer);
     }
     
+
+    @Transactional
     public Bid createBid(Bid bid) {
-        return bidRepository.save(bid);
+        // Create a new bid instance to avoid any potential ID conflicts
+        Bid newBid = new Bid();
+        newBid.setAmount(bid.getAmount());
+        newBid.setProject(bid.getProject());
+        newBid.setFreelancer(bid.getFreelancer());
+        newBid.setStatus(bid.getStatus());
+        
+        return bidRepository.save(newBid);
     }
     
     public Bid updateBid(Bid bid) {
