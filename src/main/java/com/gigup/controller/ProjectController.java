@@ -199,5 +199,32 @@ public class ProjectController {
         redirectAttributes.addFlashAttribute("success", "Bid accepted successfully");
         return "redirect:/projects/" + bid.getProject().getId();
     }
+    
+    @PostMapping("/{id}/complete")
+    public String completeProject(@PathVariable Long id, 
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Project project = projectService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Project not found"));
+            
+            User client = userService.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Check if user is the project owner
+            if (!project.getClient().getId().equals(client.getId())) {
+                redirectAttributes.addFlashAttribute("error", "You are not authorized to complete this project");
+                return "redirect:/projects/" + id;
+            }
+            
+            projectService.completeProject(id);
+            
+            redirectAttributes.addFlashAttribute("success", "Project marked as completed. You can now leave a review.");
+            return "redirect:/projects/" + id;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error completing project: " + e.getMessage());
+            return "redirect:/projects/" + id;
+        }
+    }
 }
 

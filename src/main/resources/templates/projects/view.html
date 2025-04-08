@@ -104,6 +104,25 @@
                                 <i class="fas fa-gavel me-1"></i> Place Bid
                             </button>
                         </div>
+                        <div sec:authorize="isAuthenticated()" th:if="${project.status == 'IN_PROGRESS' && currentUser.id == project.client.id}">
+                            <form th:action="@{/projects/{id}/complete(id=${project.id})}" method="post">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check-circle me-1"></i> Mark as Completed
+                                </button>
+                            </form>
+                        </div>
+                        <div sec:authorize="isAuthenticated()" th:if="${project.status == 'COMPLETED' && (currentUser.id == project.client.id || currentUser.id == project.freelancer.id)}">
+                            <a th:if="${currentUser.id == project.client.id}" 
+                               th:href="@{/reviews/create/{projectId}/{revieweeId}(projectId=${project.id},revieweeId=${project.freelancer.id})}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-star me-1"></i> Review Freelancer
+                            </a>
+                            <a th:if="${currentUser.id == project.freelancer.id}" 
+                               th:href="@{/reviews/create/{projectId}/{revieweeId}(projectId=${project.id},revieweeId=${project.client.id})}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-star me-1"></i> Review Client
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
