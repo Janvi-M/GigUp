@@ -52,3 +52,4 @@ The platform showcases core backend and frontend engineering skills using enterp
    ```bash
    git clone https://github.com/yourusername/gigup.git
    cd gigup
+   mvn spring-boot:run
