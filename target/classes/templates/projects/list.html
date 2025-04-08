@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Projects - GigUp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .project-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-laptop-code me-2"></i>GigUp
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/projects">Browse Projects</a>
+                    </li>
+                </ul>
+                <div class="d-flex" sec:authorize="!isAuthenticated()">
+                    <a href="/login" class="btn btn-outline-light me-2">Login</a>
+                    <a href="/register" class="btn btn-primary">Sign Up</a>
+                </div>
+                <div class="d-flex" sec:authorize="isAuthenticated()">
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i><span sec:authentication="name"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                <li><a class="dropdown-item" href="/projects/my-projects">My Projects</a></li>
+                                <li><a class="dropdown-item" href="/bids/my-bids">My Bids</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2>Browse Projects</h2>
+                <p class="text-muted">Find projects that match your skills and interests</p>
+            </div>
+            <div class="col-md-4 text-end" sec:authorize="isAuthenticated()">
+                <a href="/projects/create" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-1"></i> Post a Project
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info" th:if="${projects.empty}">
+                    No projects found. Check back later for new opportunities.
+                </div>
+                
+                <div class="row g-4" th:unless="${projects.empty}">
+                    <div class="col-md-6 col-lg-4" th:each="project : ${projects}">
+                        <div class="card project-card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${project.title}">Project Title</h5>
+                                <p class="card-text text-truncate" th:text="${project.description}">Project description goes here...</p>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="badge bg-primary" th:text="${'$' + project.budget}">$500</span>
+                                    <small class="text-muted" th:text="${#temporals.format(project.postedDate, 'dd MMM yyyy')}">Posted date</small>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mb-3">
+                                    <span class="badge bg-secondary" th:each="skill : ${project.skills}" th:text="${skill.name}">Skill</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                <a th:href="@{/projects/{id}(id=${project.id})}" class="btn btn-outline-primary w-100">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
