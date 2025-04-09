@@ -69,5 +69,19 @@ public class ProjectService {
     public List<Project> findOpenProjectsBySkill(Long skillId) {
         return projectRepository.findOpenProjectsBySkill(skillId);
     }
+    
+    public Project completeProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        
+        // Check if project is in progress
+        if (!"IN_PROGRESS".equals(project.getStatus())) {
+            throw new RuntimeException("Only in-progress projects can be marked as completed");
+        }
+        
+        // Update project status to COMPLETED
+        project.setStatus("COMPLETED");
+        return projectRepository.save(project);
+    }
 }
 
