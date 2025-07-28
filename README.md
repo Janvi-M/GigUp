@@ -50,6 +50,6 @@ The platform showcases core backend and frontend engineering skills using enterp
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/gigup.git
+   git clone https://github.com/Janvi-M/GigUp.git
    cd gigup
    mvn spring-boot:run
